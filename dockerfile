@@ -1,0 +1,1 @@
+FROM node:22.10.0-alpine
