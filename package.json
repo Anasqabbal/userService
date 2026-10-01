@@ -1,0 +1,24 @@
+{
+  "name": "userservice",
+  "version": "1.0.0",
+  "description": "this project for creating a user service using SQL server and Express with JS and TS and docker for easily add it to another service later as Micro-service",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Anasqabbal/userService.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Anasqabbal/userService/issues"
+  },
+  "homepage": "https://github.com/Anasqabbal/userService#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
