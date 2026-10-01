@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  userservice:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: userservice_app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
