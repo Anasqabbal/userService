@@ -1,0 +1,18 @@
+# ─── MySQL Dockerfile ────────────────────────────────────────────────────────
+# Uses the official MySQL image.
+# Configuration is handled entirely through environment variables passed at
+# runtime (or via docker-compose), so no secrets are baked into the image.
+
+FROM mysql:8.4
+
+# Default environment variables – override these at runtime or in .env
+ENV MYSQL_ROOT_PASSWORD=rootpassword \
+    MYSQL_DATABASE=userservicedb \
+    MYSQL_USER=appuser \
+    MYSQL_PASSWORD=apppassword
+
+# Expose the standard MySQL port
+EXPOSE 3306
+
+# The official mysql image already sets the correct CMD / ENTRYPOINT,
+# so no CMD override is needed here.
