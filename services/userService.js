@@ -4,23 +4,23 @@ const db     = require('../db');
 /**
  * Creates a new user in the database.
  *
- * @param {{ name: string, email: string, password: string }} userData
+ * @param {{ name: string, lastname: string, username: string, email: string, password: string }} userData
  * @returns {Promise<{ success: boolean, exists: boolean, message: string, user?: object }>}
  */
-async function createUser({ name, email, password }) {
+async function createUser({ name, lastname, username, email, password }) {
 
   // ── 1. Validate required fields ────────────────────────────────────────────
-  if (!name || !email || !password) {
+  if (!name || !lastname || !username || !email || !password) {
     return {
       success : false,
       exists  : false,
-      message : 'name, email, and password are required.',
+      message : 'name, lastname, username, email, and password are required.',
     };
   }
 
   // ── 2. Check if a user with this email already exists ─────────────────────
   const [rows] = await db.promise().query(
-    'SELECT id, name, email, created_at FROM users WHERE email = ?',
+    'SELECT id, name, lastname, username, email, created_at FROM users WHERE email = ?',
     [email]
   );
 
@@ -38,8 +38,8 @@ async function createUser({ name, email, password }) {
 
   // ── 4. Insert the new user ─────────────────────────────────────────────────
   const [result] = await db.promise().query(
-    'INSERT INTO users (name, email, password) VALUES (?, ?, ?)',
-    [name, email, hashedPassword]
+    'INSERT INTO users (name, lastname, username, email, password) VALUES (?, ?, ?, ?, ?)',
+    [name, lastname, username, email, hashedPassword]
   );
 
   return {
@@ -49,6 +49,8 @@ async function createUser({ name, email, password }) {
     user    : {
       id        : result.insertId,
       name,
+      lastname,
+      username,
       email,
     },
   };
