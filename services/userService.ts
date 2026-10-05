@@ -1,13 +1,42 @@
-const bcrypt = require('bcryptjs');
-const db     = require('../db');
+import bcrypt from 'bcryptjs';
+import db from '../db';
+
+// ── Types ──────────────────────────────────────────────────────────────────────
+
+interface CreateUserInput {
+  name     : string;
+  lastname : string;
+  username : string;
+  email    : string;
+  password : string;
+}
+
+interface UserRecord {
+  id         : number;
+  name       : string;
+  lastname   : string;
+  username   : string;
+  email      : string;
+  created_at?: string;
+}
+
+interface CreateUserResult {
+  success : boolean;
+  exists  : boolean;
+  message : string;
+  user?   : UserRecord;
+}
+
+// ── Service ───────────────────────────────────────────────────────────────────
 
 /**
  * Creates a new user in the database.
  *
- * @param {{ name: string, lastname: string, username: string, email: string, password: string }} userData
- * @returns {Promise<{ success: boolean, exists: boolean, message: string, user?: object }>}
+ * @param userData - The user data containing name, lastname, username, email, and password.
+ * @returns A result object indicating success or failure, with an optional user record.
  */
-async function createUser({ name, lastname, username, email, password }) {
+async function createUser(userData: CreateUserInput): Promise<CreateUserResult> {
+  const { name, lastname, username, email, password } = userData;
 
   // ── 1. Validate required fields ────────────────────────────────────────────
   if (!name || !lastname || !username || !email || !password) {
@@ -19,7 +48,7 @@ async function createUser({ name, lastname, username, email, password }) {
   }
 
   // ── 2. Check if a user with this email already exists ─────────────────────
-  const [rows] = await db.promise().query(
+  const [rows] = await (db as any).promise().query<UserRecord[]>(
     'SELECT id, name, lastname, username, email, created_at FROM users WHERE email = ?',
     [email]
   );
@@ -34,10 +63,10 @@ async function createUser({ name, lastname, username, email, password }) {
   }
 
   // ── 3. Hash the password before storing ────────────────────────────────────
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const hashedPassword: string = await bcrypt.hash(password, 10);
 
   // ── 4. Insert the new user ─────────────────────────────────────────────────
-  const [result] = await db.promise().query(
+  const [result] = await (db as any).promise().query<{ insertId: number }>(
     'INSERT INTO users (name, lastname, username, email, password) VALUES (?, ?, ?, ?, ?)',
     [name, lastname, username, email, hashedPassword]
   );
@@ -47,7 +76,7 @@ async function createUser({ name, lastname, username, email, password }) {
     exists  : false,
     message : `User "${name}" created successfully.`,
     user    : {
-      id        : result.insertId,
+      id       : result.insertId,
       name,
       lastname,
       username,
@@ -56,4 +85,4 @@ async function createUser({ name, lastname, username, email, password }) {
   };
 }
 
-module.exports = { createUser };
+export { createUser };
