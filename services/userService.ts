@@ -48,7 +48,7 @@ async function createUser(userData: CreateUserInput): Promise<CreateUserResult> 
   }
 
   // ── 2. Check if a user with this email already exists ─────────────────────
-  const [rows] = await (db as any).promise().query<UserRecord[]>(
+  const [rows] = await (db as any).promise().query(
     'SELECT id, name, lastname, username, email, created_at FROM users WHERE email = ?',
     [email]
   );
@@ -66,7 +66,7 @@ async function createUser(userData: CreateUserInput): Promise<CreateUserResult> 
   const hashedPassword: string = await bcrypt.hash(password, 10);
 
   // ── 4. Insert the new user ─────────────────────────────────────────────────
-  const [result] = await (db as any).promise().query<{ insertId: number }>(
+  const [result] = await (db as any).promise().query(
     'INSERT INTO users (name, lastname, username, email, password) VALUES (?, ?, ?, ?, ?)',
     [name, lastname, username, email, hashedPassword]
   );

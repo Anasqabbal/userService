@@ -2,8 +2,11 @@
   "name": "userservice",
   "version": "1.0.0",
   "description": "this project for creating a user service using SQL server and Express with JS and TS and docker for easily add it to another service later as Micro-service",
-  "main": "index.js",
+  "main": "dist/server.js",
   "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -22,5 +25,12 @@
     "bcryptjs": "^3.0.3",
     "express": "^5.2.1",
     "mysql2": "^3.24.5"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.4",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^7.0.2"
   }
 }
