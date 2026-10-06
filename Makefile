@@ -40,8 +40,8 @@ logs: ## Tail logs for all services (Ctrl+C to stop)
 logs-app: ## Tail logs for the userservice only
 	$(COMPOSE) logs -f $(APP_NAME)
 
-logs-db: ## Tail logs for SQL Server only
-	$(COMPOSE) logs -f sqlserver
+logs-db: ## Tail logs for MySQL only
+	$(COMPOSE) logs -f mysql
 
 ps: ## Show running containers and their status
 	$(COMPOSE) ps
@@ -50,12 +50,11 @@ ps: ## Show running containers and their status
 shell: ## Open a shell inside the userservice container
 	$(COMPOSE) exec $(APP_NAME) sh
 
-db-shell: ## Open sqlcmd inside the SQL Server container
-	$(COMPOSE) exec sqlserver \
-		/opt/mssql-tools18/bin/sqlcmd \
-		-S localhost -U sa \
-		-P "$${DB_PASSWORD:-YourStrong!Passw0rd}" \
-		-No
+db-shell: ## Open a MySQL shell inside the MySQL container
+	$(COMPOSE) exec mysql \
+		mysql -u $${MYSQL_USER:-appuser} \
+		-p$${MYSQL_PASSWORD:-apppassword} \
+		$${MYSQL_DATABASE:-userservicedb}
 
 # ─── Cleanup ─────────────────────────────────────────────────────────────────
 clean: ## Stop containers and remove containers + networks (keeps volumes)
