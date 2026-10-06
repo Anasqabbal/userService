@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
-import db from '../db';
+import { RowDataPacket, ResultSetHeader } from 'mysql2/promise';
+import pool from '../db';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -48,7 +49,7 @@ async function createUser(userData: CreateUserInput): Promise<CreateUserResult> 
   }
 
   // ── 2. Check if a user with this email already exists ─────────────────────
-  const [rows] = await (db as any).promise().query(
+  const [rows] = await pool.query<RowDataPacket[]>(
     'SELECT id, name, lastname, username, email, created_at FROM users WHERE email = ?',
     [email]
   );
@@ -58,7 +59,7 @@ async function createUser(userData: CreateUserInput): Promise<CreateUserResult> 
       success : false,
       exists  : true,
       message : `A user with email "${email}" already exists.`,
-      user    : rows[0],      // return the existing user's public info
+      user    : rows[0] as UserRecord,
     };
   }
 
@@ -66,7 +67,7 @@ async function createUser(userData: CreateUserInput): Promise<CreateUserResult> 
   const hashedPassword: string = await bcrypt.hash(password, 10);
 
   // ── 4. Insert the new user ─────────────────────────────────────────────────
-  const [result] = await (db as any).promise().query(
+  const [result] = await pool.query<ResultSetHeader>(
     'INSERT INTO users (name, lastname, username, email, password) VALUES (?, ?, ?, ?, ?)',
     [name, lastname, username, email, hashedPassword]
   );

@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
+import { RowDataPacket } from 'mysql2/promise';
 import { createUser } from '../services/userService';
-import db from '../db';
+import pool from '../db';
 
 const router = Router();
 
@@ -32,11 +33,11 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
 // Returns all users (no passwords).
 router.get('/', async (_req: Request, res: Response): Promise<void> => {
   try {
-    const [rows] = await (db as any).promise().query(
+    const [rows] = await pool.query<RowDataPacket[]>(
       'SELECT id, name, lastname, username, email, created_at FROM users ORDER BY created_at DESC'
     );
 
-    res.status(200).json({ success: true, count: (rows as any[]).length, users: rows });
+    res.status(200).json({ success: true, count: rows.length, users: rows });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error';
     console.error('❌  Error in GET /users:', message);

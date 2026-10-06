@@ -1,27 +1,21 @@
-import mysql, { Connection, QueryError } from 'mysql2';
+import mysql, { Pool } from 'mysql2/promise';
 
-// ─── Create Connection ────────────────────────────────────────────────────────
-const db: Connection = mysql.createConnection({
-  host    : process.env.DB_HOST     || 'localhost',
-  port    : Number(process.env.DB_PORT) || 3306,
-  user    : process.env.DB_USER     || 'appuser',
-  password: process.env.DB_PASSWORD || 'apppassword',
-  database: process.env.DB_NAME     || 'userservicedb',
+// ─── Connection Pool ──────────────────────────────────────────────────────────
+// A pool handles concurrent requests safely; a single connection does not.
+const pool: Pool = mysql.createPool({
+  host             : process.env.DB_HOST     || 'localhost',
+  port             : Number(process.env.DB_PORT) || 3306,
+  user             : process.env.DB_USER     || 'appuser',
+  password         : process.env.DB_PASSWORD || 'apppassword',
+  database         : process.env.DB_NAME     || 'userservicedb',
+  waitForConnections: true,
+  connectionLimit  : 10,   // max simultaneous connections
+  queueLimit       : 0,    // unlimited queue
 });
 
-// ─── Connect & Bootstrap Schema ──────────────────────────────────────────────
-db.connect((err: QueryError | null) => {
-  if (err) {
-    console.error('❌  MySQL connection FAILED:', err.message);
-    process.exit(1);            // no point running without a DB
-  }
-
-  console.log('✅  Connected to MySQL!');
-  console.log(`    Host     : ${process.env.DB_HOST || 'localhost'}`);
-  console.log(`    Database : ${process.env.DB_NAME || 'userservicedb'}`);
-
-  // Auto-create the users table if it doesn't exist yet
-  // Includes username and lastname columns added in v2
+// ─── Bootstrap Schema ─────────────────────────────────────────────────────────
+// Called once at startup from server.ts before the HTTP server is opened.
+export async function initDB(): Promise<void> {
   const CREATE_USERS_TABLE = `
     CREATE TABLE IF NOT EXISTS users (
       id         INT          AUTO_INCREMENT PRIMARY KEY,
@@ -34,13 +28,18 @@ db.connect((err: QueryError | null) => {
     )
   `;
 
-  db.query(CREATE_USERS_TABLE, (err: QueryError | null) => {
-    if (err) {
-      console.error('❌  Failed to create users table:', err.message);
-      process.exit(1);
-    }
-    console.log('📋  users table ready.');
-  });
-});
+  // Grab one connection just to verify connectivity + run DDL
+  const connection = await pool.getConnection();
+  try {
+    console.log('✅  Connected to MySQL pool!');
+    console.log(`    Host     : ${process.env.DB_HOST || 'localhost'}`);
+    console.log(`    Database : ${process.env.DB_NAME || 'userservicedb'}`);
 
-export default db;
+    await connection.query(CREATE_USERS_TABLE);
+    console.log('📋  users table ready.');
+  } finally {
+    connection.release();   // always return the connection to the pool
+  }
+}
+
+export default pool;
